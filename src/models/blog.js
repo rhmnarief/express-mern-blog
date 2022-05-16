@@ -15,8 +15,8 @@ const BlogPost = new Schema({
         required: true
     },
     author : {
-        type: String,
-        required: true
+        type: Object,
+        required : true
     },
 }, {
     timestamps: true,

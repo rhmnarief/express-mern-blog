@@ -1,27 +1,27 @@
-const {validationResult}  = require('express-validator')
-const path = require('path')
-const fs = require('fs')
-const BlogPost = require('../models/blog')
+const {validationResult} = require('express-validator');
+const path = require('path');
+const fs = require('fs');
+const BlogPost = require('../models/blog');
 
-exports.CreateBlogPost = (req, res, next) => {
-    const errors = validationResult(req)
+exports.createBlogPost = (req, res, next) => {
+    const errors = validationResult(req);
 
-    if(!errors.isEmpty){
-        const err = new Error('Input value tidak sesuai, Invalid Value')
-        err.errorStatus = 400
+    if(!errors.isEmpty()){
+        const err = new Error('Input value tidak sesaui, Invalid Value');
+        err.errorStatus = 400;
         err.data = errors.array()
         throw err;
     }
-    
+
     if(!req.file){
-        const err = new Error('Image harus diupload')
-        err.errorStatus = 422
-        throw err
+        const err = new Error('Image harus di upload');
+        err.errorStatus = 422;
+        throw err;
     }
 
-    const title = req.body.title
-    const image = req.body.path
-    const body = req.body.body
+    const title = req.body.title;
+    const image = req.file.path;
+    const body = req.body.body;
 
     const Posting = new BlogPost({
         title: title,
@@ -29,115 +29,116 @@ exports.CreateBlogPost = (req, res, next) => {
         image: image,
         author: {
             uid: 1,
-            name: 'Rahman Arief' 
+            name: 'Rahman Arief'
         }
     })
 
     Posting.save()
     .then(result => {
         res.status(201).json({
-            messagge : 'Create Blog Post Success',
-            data : result``
-        })
+            message: 'Create Blog Post Success',
+            data: result
+        });
     })
     .catch(err => {
-        console.log('error', errr)
-    })
+        console.log('error: ', err);
+    });
 }
 
 exports.getAllBlogPost = (req, res, next) => {
-    const currentPage = req.query.page || 1
-    const perPage = req.query.body || 5
-    let totalItems
+    const currentPage = req.query.page || 1;
+    const perPage = req.query.perPage || 5;
+    let totalItems;
 
     BlogPost.find()
     .countDocuments()
     .then(count => {
-        totalItems = count
+        totalItems = count;
         return BlogPost.find()
-        .skip((parseInt(currentPage - 1)) * (parseInt(perPage)))
+        .skip((parseInt(currentPage) - 1) * parseInt(perPage))
+        .limit(parseInt(perPage));
     })
-    .limit(parseInt(perPage))
     .then(result => {
         res.status(200).json({
             message: 'Data Blog Post Berhasil Dipanggil',
             data: result,
             total_data: totalItems,
             per_page: parseInt(perPage),
-            current_page: parseInt(currentPage)
+            current_page: parseInt(currentPage),
         })
     })
     .catch(err => {
-        next(err)
+        next(err);
     })
 }
 
 exports.getBlogPostById = (req, res, next) => {
-    const postId = req.params.postId
+    const postId = req.params.postId;
     BlogPost.findById(postId)
     .then(result => {
         if(!result){
-            const error = new Error('Blog Tidak Ditemukan')
-            error.errorStatus = 404
-            throw error
+            const error = new Error('Blog Post Tidak Ditemukan');
+            error.errorStatus = 404;
+            throw error;
         }
         res.status(200).json({
-            messgage: 'Data Blog Post Berhasil Dipanggil',
-            data: result
+            message: 'Data Blog Post Berhasil Dipanggil',
+            data: result,
         })
     })
     .catch(err => {
-        next(err)
+        next(err);
     })
 }
 
 exports.updateBlogPost = (req, res, next) => {
-    const errors = validationResult(req)
+    const errors = validationResult(req);
 
     if(!errors.isEmpty()){
-        const err = new Error('Input Tidak Sesuai')
-        err.errorStatus(400)
+        const err = new Error('Input value tidak sesaui, Invalid Value');
+        err.errorStatus = 400;
         err.data = errors.array()
-        throw err
+        throw err;
     }
 
-    if(!req.file){ 
-        const err = new Error('Image harus diupload')
-        err.errorStatus = 422 
-        throw err
+    if(!req.file){
+        const err = new Error('Image harus di upload');
+        err.errorStatus = 422;
+        throw err;
     }
 
-    const title = req.body.title
-    const image = req.file.path
-    const body = req.body.body
-    const postId = req.params.postId
-
+    const title = req.body.title;
+    const image = req.file.path;
+    const body = req.body.body;
+    const postId = req.params.postId;
+    
     BlogPost.findById(postId)
     .then(post => {
         if(!post){
-            const err = new Error('Blog Post Tidak Ditemukan')
-            err.errorStatus(404)
-            throw err
+            const err = new Error('Blog Post Tidak Ditemukan');
+            err.errorStatus = 404;
+            throw err;
         }
-        post.title = title
-        post.body = body
-        post.image = image
 
-        return post.save()
+        post.title = title;
+        post.body = body;
+        post.image = image;
+
+        return post.save();
     })
     .then(result => {
         res.status(200).json({
             message: 'Update Success',
-            data: result
+            data: result,
         })
     })
     .catch(err => {
-        next(err)
+        next(err);
     })
 }
 
 exports.deleteBlogPost = (req, res, next) => {
-    const postId = req.params.postId
+    const postId = req.params.postId;
 
     BlogPost.findById(postId)
     .then(post => {
@@ -146,6 +147,7 @@ exports.deleteBlogPost = (req, res, next) => {
             err.errorStatus = 404;
             throw err;
         }
+
         removeImage(post.image);
         return BlogPost.findByIdAndRemove(postId);
     })
@@ -161,10 +163,10 @@ exports.deleteBlogPost = (req, res, next) => {
 }
 
 const removeImage = (filePath) => {
-    console.log('filepath', filePath)
-    console.log('filepath', filePath)
+    console.log('filePath', filePath);
+    console.log('dir name: ', __dirname);
 
-    // C:\Belajar MERN\mern-blog\mern-backend\images
-    filePath = path.join(__dirname, '../..', filePath)
-    fs.unlink(filePath, err => console.log(errr))
+    // C:\Users\RIFKY\Desktop\belajar-website-mern\mern-api\
+    filePath = path.join(__dirname, '../..', filePath);
+    fs.unlink(filePath, err => console.log(err));
 }

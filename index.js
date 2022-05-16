@@ -6,6 +6,7 @@ const path = require('path')
 
 const app = express();
 const blogRoutes = require('./src/routes/blog')
+const authRoutes = require('./src/routes/auth')
 
 const fileStorage = multer.diskStorage({
     destination : (req, file, cb) => {
@@ -16,15 +17,14 @@ const fileStorage = multer.diskStorage({
     }
 })
 
-const fileFilter = (req, res, cb) => {
-    if(
-        file.mimetype === 'image/png' ||
-        file.mimetype === 'image/jpg' ||
+const fileFilter = (req, file, cb) => {
+    if( file.mimetype === 'image/png' || 
+        file.mimetype === 'image/jpg' || 
         file.mimetype === 'image/jpeg'
     ){
-        cb(null, true)
-    }else{
-        cb(null, false)
+        cb(null, true);
+    } else {
+        cb(null, false);
     }
 }
 
@@ -40,6 +40,7 @@ app.use((req, res, next) => {
 })
 
 app.use('/v1/blog', blogRoutes)
+app.use('/v1/auth', authRoutes)
 
 app.use((error, req, res, next) =>{
     const status = error.errorStatus || 500
@@ -53,7 +54,8 @@ app.use((error, req, res, next) =>{
         }
     )
 })
-mongoose.connect('mongodb://localhost:27017')
+
+mongoose.connect('mongodb+srv://rhmnarief:rYlxdzoV6bJIEjR7@cluster0.5s1v4.mongodb.net/blog?retryWrites=true&w=majority')
 .then(() => {
     app.listen(4000, () => console.log('Connection Succesfully'))
 })
